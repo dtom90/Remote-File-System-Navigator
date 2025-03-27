@@ -69,14 +69,25 @@ function App() {
     }
   }
 
+  const handleCloseSession = () => {
+    // send a request to the server to close the session
+    fetch(`http://localhost:8080/api/ssh/disconnect/${sessionId}`)
+    .then(response => response.json())
+    .then(data => {
+      alert(data.message);
+      setSessionId(null);
+    })
+    .catch(error => console.error('Error closing session:', error))
+  }
+
   useEffect(() => {
     if (!sessionId) return;
 
-    fetch(`http://${config.hostname}:8080/api/files/${currentPath}`)
+    fetch(`http://localhost:8080/api/files/${sessionId}/${currentPath}`)
       .then(response => response.json())
       .then(data => setDirectories(data))
       .catch(error => console.error('Error fetching directories:', error))
-  }, [currentPath, sessionId, config.hostname])
+  }, [currentPath, sessionId])
 
   if (!sessionId) {
     return (
@@ -129,11 +140,11 @@ function App() {
     <div className="App">
       <h1>File System Navigation</h1>
       <h4>Session ID: {sessionId}</h4>
+      <button onClick={handleCloseSession}>Close Session</button>
       <div className="card">
         <p>Current Path: {currentPath}</p>
         
         <h2>Directories</h2>
-        <button style={{ width: '100%' }} onClick={() => navigate('..')}>..</button>
         {directories.map((dir, index) => (
           <div key={index}>
             <button style={{ width: '100%' }} disabled={!dir.isDir} onClick={() => navigate(dir.name)}>{dir.name}</button>
