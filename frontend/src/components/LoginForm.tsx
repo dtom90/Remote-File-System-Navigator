@@ -1,18 +1,12 @@
 import { useState } from 'react';
-
-interface ConnectionConfig {
-  hostname: string;
-  port: number;
-  username: string;
-  password: string;
-}
+import { SSHConnectRequest } from '../types';
 
 interface LoginFormProps {
-  onConnect: (config: ConnectionConfig) => void;
+  onConnect: (config: SSHConnectRequest) => void;
 }
 
 function LoginForm({ onConnect }: LoginFormProps) {
-  const [config, setConfig] = useState<ConnectionConfig>({
+  const [config, setConfig] = useState<SSHConnectRequest>({
     hostname: 'localhost',
     port: 22,
     username: '',

@@ -1,34 +1,15 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
 import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
-
-interface ConnectionConfig {
-  hostname: string;
-  port: number;
-  username: string;
-  password: string;
-}
-
-type SSHConnectResponse = {
-  message: string;
-  sessionID: string;
-}
-
-interface FileInfo {
-  name: string;
-  size: number;
-  isDir: boolean;
-  modTime: string;
-}
+import FileSystemNavigator from './components/FileSystemNavigator'
+import { SSHConnectResponse, SSHDisconnectResponse, SSHConnectRequest } from './types'
 
 function App() {
-  const [directories, setDirectories] = useState<FileInfo[]>([])
-  const [currentPath, setCurrentPath] = useState<string>('/')
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [notification, setNotification] = useState<{message: string; type: 'success' | 'error'} | null>(null)
 
-  const handleConnect = async (config: ConnectionConfig) => {
+  const handleConnect = async (config: SSHConnectRequest) => {
     try {
       const response = await fetch('http://localhost:8080/api/ssh/connect', {
         method: 'POST',
@@ -54,42 +35,29 @@ function App() {
     }
   }
 
-  const navigate = (path: string) => {
-    if (path === '..') {
-      setCurrentPath(currentPath.slice(0, currentPath.lastIndexOf('/')))
-    } else {
-      const newPath = currentPath === '/' 
-        ? currentPath + path 
-        : currentPath + '/' + path;
-    
-      setCurrentPath(newPath)
+  const handleCloseSession = async () => {
+    if (!sessionId) {
+      setNotification({ message: 'No session to close', type: 'error' });
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8080/api/ssh/disconnect/${sessionId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to disconnect SSH session');
+      }
+
+      const data = await response.json() as SSHDisconnectResponse;
+      setSessionId(null);
+      setNotification({ message: data.message, type: 'success' });
+    } catch (error) { 
+      console.error('Error closing session:', error);
+      setNotification({ message: 'Error closing session: ' + (error as Error).message, type: 'error' });
     }
   }
-
-  const handleCloseSession = () => {
-    fetch(`http://localhost:8080/api/ssh/disconnect/${sessionId}`, {
-      method: 'DELETE'
-    })
-    .then(response => response.json())
-    .then(data => {
-      if (data.error) {
-        setNotification({ message: 'Error closing session: ' + data.error, type: 'error' });
-      } else {
-        setSessionId(null);
-        setNotification({ message: data.message, type: 'success' });
-      }
-    })
-    .catch(error => console.error('Error closing session:', error))
-  }
-
-  useEffect(() => {
-    if (!sessionId) return;
-
-    fetch(`http://localhost:8080/api/files/${sessionId}/${currentPath}`)
-      .then(response => response.json())
-      .then(data => setDirectories(data))
-      .catch(error => console.error('Error fetching directories:', error))
-  }, [currentPath, sessionId])
 
   return (
     <div className="App">
@@ -105,21 +73,10 @@ function App() {
       {!sessionId ? (
         <LoginForm onConnect={handleConnect} />
       ) : (
-        <>
-          <h1>File System Navigation</h1>
-          <h4>Session ID: {sessionId}</h4>
-          <button onClick={handleCloseSession}>Close Session</button>
-          <div className="card">
-            <p>Current Path: {currentPath}</p>
-            
-            <h2>Directories</h2>
-            {directories.map((dir, index) => (
-              <div key={index}>
-                <button style={{ width: '100%' }} disabled={!dir.isDir} onClick={() => navigate(dir.name)}>{dir.name}</button>
-              </div>
-            ))}
-          </div>
-        </>
+        <FileSystemNavigator
+          sessionId={sessionId}
+          onCloseSession={handleCloseSession}
+        />
       )}
     </div>
   )
