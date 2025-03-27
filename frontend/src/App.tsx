@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 import Notification from './components/Notification'
+import LoginForm from './components/LoginForm'
 
 interface ConnectionConfig {
   hostname: string;
@@ -26,14 +27,8 @@ function App() {
   const [currentPath, setCurrentPath] = useState<string>('/')
   const [sessionId, setSessionId] = useState<string | null>(null)
   const [notification, setNotification] = useState<{message: string; type: 'success' | 'error'} | null>(null)
-  const [config, setConfig] = useState<ConnectionConfig>({
-    hostname: 'localhost',
-    port: 22,
-    username: '',
-    password: ''
-  })
 
-  const handleConnect = async () => {
+  const handleConnect = async (config: ConnectionConfig) => {
     try {
       const response = await fetch('http://localhost:8080/api/ssh/connect', {
         method: 'POST',
@@ -108,48 +103,7 @@ function App() {
       )}
       
       {!sessionId ? (
-        <>
-          <h1>Connect to File System</h1>
-          <div className="card">
-            <div style={{ marginBottom: '1rem' }}>
-              <label htmlFor="hostname">Hostname: </label>
-              <input
-                id="hostname"
-                type="text"
-                value={config.hostname}
-                onChange={(e) => setConfig(prev => ({ ...prev, hostname: e.target.value }))}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label htmlFor="port">Port: </label>
-              <input
-                id="port"
-                type="number"
-                value={config.port}
-                onChange={(e) => setConfig(prev => ({ ...prev, port: parseInt(e.target.value) }))}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label htmlFor="username">Username: </label>
-              <input
-                id="username"
-                type="text"
-                value={config.username}
-                onChange={(e) => setConfig(prev => ({ ...prev, username: e.target.value }))}
-              />
-            </div>
-            <div style={{ marginBottom: '1rem' }}>
-              <label htmlFor="password">Password: </label>
-              <input
-                id="password"
-                type="password"
-                value={config.password}
-                onChange={(e) => setConfig(prev => ({ ...prev, password: e.target.value }))}
-              />
-            </div>
-            <button onClick={handleConnect}>Connect</button>
-          </div>
-        </>
+        <LoginForm onConnect={handleConnect} />
       ) : (
         <>
           <h1>File System Navigation</h1>
