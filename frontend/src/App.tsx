@@ -70,12 +70,17 @@ function App() {
   }
 
   const handleCloseSession = () => {
-    // send a request to the server to close the session
-    fetch(`http://localhost:8080/api/ssh/disconnect/${sessionId}`)
+    fetch(`http://localhost:8080/api/ssh/disconnect/${sessionId}`, {
+      method: 'DELETE'
+    })
     .then(response => response.json())
     .then(data => {
-      alert(data.message);
-      setSessionId(null);
+      if (data.error) {
+        alert('Error closing session: ' + data.error);
+      } else {
+        setSessionId(null);
+        alert(data.message);
+      }
     })
     .catch(error => console.error('Error closing session:', error))
   }

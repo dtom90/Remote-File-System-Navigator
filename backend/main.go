@@ -126,7 +126,7 @@ func main() {
 	})
 
 	// Update disconnect endpoint to properly clean up
-	router.POST("/api/ssh/disconnect/:sessionID", func(c *gin.Context) {
+	router.DELETE("/api/ssh/disconnect/:sessionID", func(c *gin.Context) {
 		sessionID := c.Param("sessionID")
 		if sshSession, exists := sessions[sessionID]; exists {
 			sshSession.Client.Close()
