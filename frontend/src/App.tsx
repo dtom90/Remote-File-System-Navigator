@@ -3,27 +3,40 @@ import './App.css'
 
 function App() {
   const [directories, setDirectories] = useState<string[]>([])
+  const [currentPath, setCurrentPath] = useState<string>('/')
+
+  const navigate = (path: string) => {
+    if (path === '..') {
+      setCurrentPath(currentPath.slice(0, currentPath.lastIndexOf('/')))
+    } else {
+      const newPath = currentPath === '/' 
+        ? currentPath + path 
+        : currentPath + '/' + path;
+    
+      setCurrentPath(newPath)
+    }
+  }
 
   useEffect(() => {
-    // Fetch directories
-    fetch('http://localhost:8080/api/files')
+    fetch('http://localhost:8080/api/files/' + currentPath)
       .then(response => response.json())
       .then(data => setDirectories(data))
       .catch(error => console.error('Error fetching directories:', error))
-  }, [])
+  }, [currentPath])
 
   return (
     <div className="App">
       <h1>File System Navigation</h1>
       <div className="card">
-        <p>Current Path: /</p>
+        <p>Current Path: {currentPath}</p>
         
         <h2>Directories</h2>
-        <ul>
-          {directories.map((dir, index) => (
-            <li key={index}>{dir.name}</li>
-          ))}
-        </ul>
+        <button style={{ width: '100%' }} onClick={() => navigate('..')}>..</button>
+        {directories.map((dir, index) => (
+          <div key={index}>
+            <button style={{ width: '100%' }} disabled={!dir.isDir} onClick={() => navigate(dir.name)}>{dir.name}</button>
+          </div>
+        ))}
       </div>
     </div>
   )
