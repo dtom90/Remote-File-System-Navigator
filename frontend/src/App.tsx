@@ -1,8 +1,15 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
+interface FileInfo {
+  name: string;
+  size: number;
+  isDir: boolean;
+  modTime: string;
+}
+
 function App() {
-  const [directories, setDirectories] = useState<string[]>([])
+  const [directories, setDirectories] = useState<FileInfo[]>([])
   const [currentPath, setCurrentPath] = useState<string>('/')
 
   const navigate = (path: string) => {
