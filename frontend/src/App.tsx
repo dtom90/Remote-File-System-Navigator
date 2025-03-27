@@ -2,20 +2,28 @@ import { useState, useEffect } from 'react'
 import './App.css'
 
 function App() {
-  const [health, setHealth] = useState<string>('Loading...')
+  const [directories, setDirectories] = useState<string[]>([])
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/health')
+    // Fetch directories
+    fetch('http://localhost:8080/api/files')
       .then(response => response.json())
-      .then(data => setHealth(data.status))
-      .catch(error => setHealth('Error: ' + error.message))
+      .then(data => setDirectories(data))
+      .catch(error => console.error('Error fetching directories:', error))
   }, [])
 
   return (
     <div className="App">
       <h1>File System Navigation</h1>
       <div className="card">
-        <p>Backend Health Status: {health}</p>
+        <p>Current Path: /</p>
+        
+        <h2>Directories</h2>
+        <ul>
+          {directories.map((dir, index) => (
+            <li key={index}>{dir.name}</li>
+          ))}
+        </ul>
       </div>
     </div>
   )
