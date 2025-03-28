@@ -152,9 +152,10 @@ func main() {
 		}
 	}()
 
-	// Add these new routes
 	router.POST("/api/auth/login", handleLogin)
 	router.POST("/api/auth/logout", handleLogout)
+
+	router.GET("/api/servers", authMiddleware(), handleGetServers)
 
 	// Start server
 	http.ListenAndServe(":8080", c.Handler(router))

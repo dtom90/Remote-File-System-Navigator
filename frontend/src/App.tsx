@@ -12,31 +12,39 @@ function App() {
     type: 'success' | 'error';
   } | null>(null);
 
-  const handleConnect = async (config: SSHConnectRequest) => {
-    try {
-      const response = await fetch('http://localhost:8080/api/ssh/connect', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...config,
-          port: config.port.toString(),
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to establish SSH connection');
-      }
-
-      const data = (await response.json()) as SSHConnectResponse;
-      setSessionId(data.sessionID);
-      setNotification({ message: data.message, type: 'success' });
-    } catch (error) {
-      console.error('Connection error:', error);
-      setNotification({ message: 'Failed to connect: ' + (error as Error).message, type: 'error' });
+  const handleConnect = async (isConnected: boolean) => {
+    if (isConnected) {
+      // call the api to get the servers
+      const response = await fetch('http://localhost:8080/api/servers');
+      const data = await response.json();
+      console.log(data);
     }
   };
+  // const handleConnect = async (config: SSHConnectRequest) => {
+  //   try {
+  //     const response = await fetch('http://localhost:8080/api/ssh/connect', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         ...config,
+  //         port: config.port.toString(),
+  //       }),
+  //     });
+
+  //     if (!response.ok) {
+  //       throw new Error('Failed to establish SSH connection');
+  //     }
+
+  //     const data = (await response.json()) as SSHConnectResponse;
+  //     setSessionId(data.sessionID);
+  //     setNotification({ message: data.message, type: 'success' });
+  //   } catch (error) {
+  //     console.error('Connection error:', error);
+  //     setNotification({ message: 'Failed to connect: ' + (error as Error).message, type: 'error' });
+  //   }
+  // };
 
   const handleCloseSession = async () => {
     if (!sessionId) {
