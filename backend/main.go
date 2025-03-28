@@ -29,7 +29,7 @@ type SSHSession struct {
 }
 
 var (
-	sessions = make(map[string]*SSHSession)
+	sshSessions = make(map[string]*SSHSession)
 )
 
 // Add this helper function
@@ -80,7 +80,7 @@ func main() {
 
 		// Generate session ID and store client
 		sessionID := generateSessionID()
-		sessions[sessionID] = &SSHSession{
+		sshSessions[sessionID] = &SSHSession{
 			Client:  client,
 			Created: time.Now(),
 		}
@@ -92,7 +92,7 @@ func main() {
 	})
 
 	// Update file system endpoint to create new sessions as needed
-	router.GET("/api/files/:sessionId/*path", func(c *gin.Context) {
+	router.GET("/api/files/:sessionId/*path", authMiddleware(), func(c *gin.Context) {
 		sessionId := c.Param("sessionId")
 		path := c.Param("path")
 		if path == "" {
@@ -100,7 +100,7 @@ func main() {
 		}
 
 		// Get the SSH session
-		sshSession, exists := sessions[sessionId]
+		sshSession, exists := sshSessions[sessionId]
 		if !exists {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Session not found"})
 			return
@@ -128,9 +128,9 @@ func main() {
 	// Update disconnect endpoint to properly clean up
 	router.DELETE("/api/ssh/disconnect/:sessionID", func(c *gin.Context) {
 		sessionID := c.Param("sessionID")
-		if sshSession, exists := sessions[sessionID]; exists {
+		if sshSession, exists := sshSessions[sessionID]; exists {
 			sshSession.Client.Close()
-			delete(sessions, sessionID)
+			delete(sshSessions, sessionID)
 			c.JSON(http.StatusOK, gin.H{"message": "Session closed successfully"})
 		} else {
 			c.JSON(http.StatusNotFound, gin.H{"error": "Session not found"})
@@ -142,15 +142,19 @@ func main() {
 		for {
 			time.Sleep(5 * time.Minute)
 			now := time.Now()
-			for id, session := range sessions {
+			for id, session := range sshSessions {
 				// Clean up sessions older than 1 hour
 				if now.Sub(session.Created) > 1*time.Hour {
 					session.Client.Close()
-					delete(sessions, id)
+					delete(sshSessions, id)
 				}
 			}
 		}
 	}()
+
+	// Add these new routes
+	router.POST("/api/auth/login", handleLogin)
+	router.POST("/api/auth/logout", handleLogout)
 
 	// Start server
 	http.ListenAndServe(":8080", c.Handler(router))
