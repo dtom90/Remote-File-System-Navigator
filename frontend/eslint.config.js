@@ -40,13 +40,10 @@ export default tseslint.config(
     rules: {
       'react/react-in-jsx-scope': 'off',
       'prettier/prettier': 'error',
-      'react-refresh/only-export-components': [
-        'warn',
-        { allowConstantExport: true },
-      ],
+      'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
     },
   },
-  eslintConfigPrettier,
+  eslintConfigPrettier
 );

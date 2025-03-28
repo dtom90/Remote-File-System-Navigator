@@ -35,7 +35,7 @@ function Notification({ message, type = 'success', onClose, duration = 5000 }: N
         zIndex: 1000,
         display: 'flex',
         alignItems: 'center',
-        gap: '1rem'
+        gap: '1rem',
       }}
     >
       <span>{message}</span>
@@ -47,7 +47,7 @@ function Notification({ message, type = 'success', onClose, duration = 5000 }: N
             border: 'none',
             color: 'white',
             cursor: 'pointer',
-            fontSize: '1.2rem'
+            fontSize: '1.2rem',
           }}
         >
           ×
@@ -57,4 +57,4 @@ function Notification({ message, type = 'success', onClose, duration = 5000 }: N
   );
 }
 
-export default Notification; 
+export default Notification;
