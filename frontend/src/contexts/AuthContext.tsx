@@ -12,8 +12,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [token, setToken] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!localStorage.getItem('token'));
 
   const login = async (username: string, password: string): Promise<void> => {
     const response = await fetch('http://localhost:8080/api/auth/login', {
@@ -29,11 +29,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const data = await response.json();
+    localStorage.setItem('token', data.token);
     setToken(data.token);
     setIsAuthenticated(true);
   };
 
   const logout = (): void => {
+    localStorage.removeItem('token');
     setToken(null);
     setIsAuthenticated(false);
   };
