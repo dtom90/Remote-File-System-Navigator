@@ -1,4 +1,4 @@
-# File System Navigation
+# Remote File System Navigator
 
 A web application with a Go backend and React+TypeScript frontend.
 

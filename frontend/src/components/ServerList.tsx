@@ -32,12 +32,14 @@ function ServerList() {
         <p>No servers available</p>
       ) : (
         <div className='servers-grid'>
-          {servers.map((server) => (
-            <a key={server.id} href={`/servers/${server.id}`} className='btn server-tile'>
-              <h3>{server.name}</h3>
-              <p>{server.hostname}</p>
-            </a>
-          ))}
+          {servers
+            .sort((a, b) => String(a.id).localeCompare(String(b.id)))
+            .map((server) => (
+              <a key={server.id} href={`/servers/${server.id}`} className='btn server-tile'>
+                <h3>{server.name}</h3>
+                <p>{server.hostname}</p>
+              </a>
+            ))}
         </div>
       )}
     </div>
