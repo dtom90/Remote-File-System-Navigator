@@ -1,12 +1,44 @@
-import React from 'react';
+import { useState, useEffect } from 'react';
 import { Server } from '../types';
+import { useAuth } from '../contexts/AuthContext';
 
-interface ServersProps {
-  servers: Server[];
-  onServerSelect: (server: Server) => void;
-}
+function Servers() {
+  const [servers, setServers] = useState<Server[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const { token } = useAuth();
 
-const Servers: React.FC<ServersProps> = ({ servers, onServerSelect }) => {
+  useEffect(() => {
+    fetchServers();
+  }, [token]);
+
+  const fetchServers = async () => {
+    try {
+      const response = await fetch('http://localhost:8080/api/servers', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch servers');
+      }
+      
+      const data = await response.json();
+      setServers(data);
+    } catch (error) {
+      setError((error as Error).message);
+    }
+  };
+
+  const handleServerSelect = (server: Server) => {
+    console.log('Selected server:', server);
+  };
+
+  if (error) {
+    return <div>Error: {error}</div>;
+  }
+
   return (
     <div className="servers-container">
       <h2>Available Servers</h2>
@@ -15,7 +47,7 @@ const Servers: React.FC<ServersProps> = ({ servers, onServerSelect }) => {
       ) : (
         <ul className="servers-list">
           {servers.map((server) => (
-            <li key={server.id} onClick={() => onServerSelect(server)} className="server-item">
+            <li key={server.id} onClick={() => handleServerSelect(server)} className="server-item">
               <h3>{server.name}</h3>
               <p>{server.host}</p>
             </li>
@@ -24,6 +56,6 @@ const Servers: React.FC<ServersProps> = ({ servers, onServerSelect }) => {
       )}
     </div>
   );
-};
+}
 
 export default Servers; 

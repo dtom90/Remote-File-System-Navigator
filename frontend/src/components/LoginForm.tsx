@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-interface LoginFormProps {
-  onConnect: (isConnected: boolean) => void;
-}
-
-function LoginForm({ onConnect }: LoginFormProps) {
+function LoginForm() {
   const { setToken, token } = useAuth();
   const [credentials, setCredentials] = useState({
     username: '',
@@ -13,7 +10,8 @@ function LoginForm({ onConnect }: LoginFormProps) {
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-
+  const navigate = useNavigate();
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -44,7 +42,7 @@ function LoginForm({ onConnect }: LoginFormProps) {
 
   useEffect(() => {
     if (token) {
-      onConnect(true);
+      navigate('/servers');
     }
   }, [token]);
 
