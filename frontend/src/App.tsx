@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 import Notification from './components/Notification';
 import LoginForm from './components/LoginForm';
@@ -77,22 +78,41 @@ function App() {
   };
 
   return (
-    <div className='App'>
-      {notification && (
-        <Notification
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-          duration={5000}
-        />
-      )}
+    <BrowserRouter>
+      <div className='App'>
+        {notification && (
+          <Notification
+            message={notification.message}
+            type={notification.type}
+            onClose={() => setNotification(null)}
+            duration={5000}
+          />
+        )}
 
-      {!servers.length ? (
-        <LoginForm onConnect={handleConnect} />
-      ) : (
-        <Servers servers={servers} onServerSelect={handleServerSelect} />
-      )}
-    </div>
+        <Routes>
+          <Route 
+            path="/login" 
+            element={
+              !servers.length ? (
+                <LoginForm onConnect={handleConnect} />
+              ) : (
+                <Navigate to="/" />
+              )
+            } 
+          />
+          <Route 
+            path="/" 
+            element={
+              servers.length ? (
+                <Servers servers={servers} onServerSelect={handleServerSelect} />
+              ) : (
+                <Navigate to="/login" />
+              )
+            } 
+          />
+        </Routes>
+      </div>
+    </BrowserRouter>
   );
 }
 
