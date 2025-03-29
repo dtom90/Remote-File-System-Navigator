@@ -33,15 +33,27 @@ function App() {
       children: [
         {
           path: '/login',
-          element: !isAuthenticated ? <LoginForm /> : <Navigate to='/' />,
+          element: !isAuthenticated ? (
+            <LoginForm />
+          ) : (
+            <Navigate to={sessionStorage.getItem('returnTo') || '/'} replace />
+          ),
         },
         {
           path: '/',
-          element: isAuthenticated ? <ServerList /> : <Navigate to='/login' />,
+          element: isAuthenticated ? (
+            <ServerList />
+          ) : (
+            <Navigate to='/login' replace state={{ returnTo: '/' }} />
+          ),
         },
         {
           path: '/servers/:id',
-          element: isAuthenticated ? <ServerDetail /> : <Navigate to='/login' />,
+          element: isAuthenticated ? (
+            <ServerDetail />
+          ) : (
+            <Navigate to='/login' replace state={{ returnTo: window.location.pathname }} />
+          ),
         },
       ],
     },

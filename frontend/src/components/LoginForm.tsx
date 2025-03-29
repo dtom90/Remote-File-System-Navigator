@@ -1,36 +1,38 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 function LoginForm() {
-  const { login, isAuthenticated } = useAuth();
+  const { login } = useAuth();
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const location = useLocation();
+  const returnTo = location.state?.returnTo || '/';
+  console.log('returnTo', returnTo);
 
+  const navigate = useNavigate();
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('handleSubmit', 'returnTo', returnTo);
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
       await login(credentials.username, credentials.password);
+      if (returnTo) {
+        sessionStorage.setItem('returnTo', returnTo);
+        navigate(returnTo);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
-    }
-  }, [isAuthenticated]);
 
   return (
     <>
