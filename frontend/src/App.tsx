@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
 import './App.css';
 import Notification from './components/Notification';
 import LoginForm from './components/LoginForm';
@@ -13,7 +13,7 @@ function App() {
     message: string;
     type: 'success' | 'error';
   } | null>(null);
-  const { token } = useAuth();
+  const { token, setToken } = useAuth();
   const [servers, setServers] = useState<Server[]>([]);
 
   const handleConnect = async (isConnected: boolean) => {
@@ -77,9 +77,24 @@ function App() {
     }
   };
 
+  function handleLogout(): void {
+    setToken(null);
+  }
+
   return (
     <BrowserRouter>
       <div className='App'>
+        <nav className="navbar">
+          <div className="navbar-brand">
+            <Link to="/">Remote File Navigator</Link>
+          </div>
+          <div className="navbar-links">
+            {token && (
+              <button onClick={handleLogout}>Logout</button>
+            )}
+          </div>
+        </nav>
+
         {notification && (
           <Notification
             message={notification.message}
@@ -93,7 +108,7 @@ function App() {
           <Route 
             path="/login" 
             element={
-              !servers.length ? (
+              !token ? (
                 <LoginForm onConnect={handleConnect} />
               ) : (
                 <Navigate to="/" />
@@ -103,7 +118,7 @@ function App() {
           <Route 
             path="/" 
             element={
-              servers.length ? (
+              token && servers.length ? (
                 <Servers servers={servers} onServerSelect={handleServerSelect} />
               ) : (
                 <Navigate to="/login" />
