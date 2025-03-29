@@ -17,25 +17,30 @@ func main() {
 		AllowedHeaders: []string{"Origin", "Content-Type", "Accept", "Authorization"},
 	})
 
-	// Basic health check endpoint
+	// Public routes (no auth required)
 	router.GET("/api/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok",
 		})
 	})
-
-	// auth routes
 	router.POST("/api/auth/login", handleLogin)
-	router.POST("/api/auth/logout", handleLogout)
 
-	// servers routes
-	router.GET("/api/servers", authMiddleware(), handleGetServers)
-	router.GET("/api/servers/:id", authMiddleware(), handleGetServer)
+	// Protected routes group (auth required)
+	protected := router.Group("/api")
+	protected.Use(authMiddleware())
+	{
+		// auth routes
+		protected.POST("/auth/logout", handleLogout)
 
-	// ssh routes
-	router.POST("/api/ssh/connect", handleSSHConnect)
-	router.GET("/api/files/:sessionId/*path", authMiddleware(), handleListFiles)
-	router.DELETE("/api/ssh/disconnect/:sessionID", handleSSHDisconnect)
+		// servers routes
+		protected.GET("/servers", handleGetServers)
+		protected.GET("/servers/:id", handleGetServer)
+
+		// ssh routes
+		protected.POST("/ssh/connect", handleSSHConnect)
+		protected.GET("/files/:sessionId/*path", handleListFiles)
+		protected.DELETE("/ssh/disconnect/:sessionID", handleSSHDisconnect)
+	}
 
 	// Start server
 	http.ListenAndServe(":8080", c.Handler(router))
