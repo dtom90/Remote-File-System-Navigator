@@ -35,14 +35,18 @@ function Servers() {
       {servers.length === 0 ? (
         <p>No servers available</p>
       ) : (
-        <ul className="servers-list">
+        <div className="servers-grid">
           {servers.map((server) => (
-            <li key={server.id} onClick={() => handleServerSelect(server)} className="server-item">
+            <button
+              key={server.id}
+              onClick={() => handleServerSelect(server)}
+              className="server-tile"
+            >
               <h3>{server.name}</h3>
-              <p>{server.host}</p>
-            </li>
+              <p>{server.hostname}</p>
+            </button>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
