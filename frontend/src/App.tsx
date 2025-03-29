@@ -2,9 +2,9 @@ import { useState } from 'react';
 import './App.css';
 import Notification from './components/Notification';
 import LoginForm from './components/LoginForm';
-import FileSystemNavigator from './components/FileSystemNavigator';
-import { SSHConnectResponse, SSHDisconnectResponse, SSHConnectRequest } from './types';
+import { Server, SSHDisconnectResponse } from './types';
 import { useAuth } from './contexts/AuthContext';
+import Servers from './components/Servers';
 
 function App() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -13,6 +13,7 @@ function App() {
     type: 'success' | 'error';
   } | null>(null);
   const { token } = useAuth();
+  const [servers, setServers] = useState<Server[]>([]);
 
   const handleConnect = async (isConnected: boolean) => {
     if (!isConnected) return;
@@ -35,7 +36,7 @@ function App() {
       }
       
       const data = await response.json();
-      console.log(data);
+      setServers(data);
     } catch (error) {
       setNotification({ 
         message: 'Failed to fetch servers: ' + (error as Error).message, 
@@ -43,31 +44,10 @@ function App() {
       });
     }
   };
-  // const handleConnect = async (config: SSHConnectRequest) => {
-  //   try {
-  //     const response = await fetch('http://localhost:8080/api/ssh/connect', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({
-  //         ...config,
-  //         port: config.port.toString(),
-  //       }),
-  //     });
 
-  //     if (!response.ok) {
-  //       throw new Error('Failed to establish SSH connection');
-  //     }
-
-  //     const data = (await response.json()) as SSHConnectResponse;
-  //     setSessionId(data.sessionID);
-  //     setNotification({ message: data.message, type: 'success' });
-  //   } catch (error) {
-  //     console.error('Connection error:', error);
-  //     setNotification({ message: 'Failed to connect: ' + (error as Error).message, type: 'error' });
-  //   }
-  // };
+  const handleServerSelect = (server: Server) => {
+    console.log('Selected server:', server);
+  };
 
   const handleCloseSession = async () => {
     if (!sessionId) {
@@ -107,10 +87,10 @@ function App() {
         />
       )}
 
-      {!sessionId ? (
+      {!servers.length ? (
         <LoginForm onConnect={handleConnect} />
       ) : (
-        <FileSystemNavigator sessionId={sessionId} onCloseSession={handleCloseSession} />
+        <Servers servers={servers} onServerSelect={handleServerSelect} />
       )}
     </div>
   );

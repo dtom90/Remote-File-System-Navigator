@@ -1,3 +1,10 @@
+export interface Server {
+  id: string;
+  name: string;
+  host: string;
+  // Add other server properties as needed
+}
+
 export interface SSHConnectRequest {
   hostname: string;
   port: number;
