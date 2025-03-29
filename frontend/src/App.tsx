@@ -1,66 +1,48 @@
-import { useState } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, Link } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Link, Outlet } from 'react-router-dom';
 import './App.css';
-import Notification from './components/Notification';
 import LoginForm from './components/LoginForm';
 import { useAuth } from './contexts/AuthContext';
 import Servers from './components/Servers';
 
-function App() {
-  const [notification, setNotification] = useState<{
-    message: string;
-    type: 'success' | 'error';
-  } | null>(null);
+function Layout() {
   const { isAuthenticated, logout } = useAuth();
 
   return (
-    <BrowserRouter>
-      <div className='App'>
-        <nav className="navbar">
-          <div className="navbar-brand">
-            <Link to="/">Remote File Navigator</Link>
-          </div>
-          <div className="navbar-links">
-            {isAuthenticated && (
-              <button onClick={logout}>Logout</button>
-            )}
-          </div>
-        </nav>
+    <div className='App'>
+      <nav className='navbar'>
+        <div className='navbar-brand'>
+          <Link to='/'>Remote File Navigator</Link>
+        </div>
+        <div className='navbar-links'>
+          {isAuthenticated && <button onClick={logout}>Logout</button>}
+        </div>
+      </nav>
 
-        {notification && (
-          <Notification
-            message={notification.message}
-            type={notification.type}
-            onClose={() => setNotification(null)}
-            duration={5000}
-          />
-        )}
-
-        <Routes>
-          <Route 
-            path="/login" 
-            element={
-              !isAuthenticated ? (
-                <LoginForm />
-              ) : (
-                <Navigate to="/" />
-              )
-            } 
-          />
-          <Route 
-            path="/" 
-            element={
-              isAuthenticated ? (
-                <Servers />
-              ) : (
-                <Navigate to="/login" />
-              )
-            } 
-          />
-        </Routes>
-      </div>
-    </BrowserRouter>
+      <Outlet />
+    </div>
   );
+}
+
+function App() {
+  const { isAuthenticated } = useAuth();
+
+  const router = createBrowserRouter([
+    {
+      element: <Layout />,
+      children: [
+        {
+          path: '/login',
+          element: !isAuthenticated ? <LoginForm /> : <Navigate to='/' />,
+        },
+        {
+          path: '/',
+          element: isAuthenticated ? <Servers /> : <Navigate to='/login' />,
+        },
+      ],
+    },
+  ]);
+
+  return <RouterProvider router={router} />;
 }
 
 export default App;

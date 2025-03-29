@@ -1,5 +1,4 @@
 import { createContext, useContext, useState, ReactNode } from 'react';
-
 const baseUrl = 'http://localhost:8080';
 
 interface AuthContextType {
@@ -13,7 +12,9 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem('token'));
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => !!localStorage.getItem('token'));
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+    () => !!localStorage.getItem('token')
+  );
 
   const login = async (username: string, password: string): Promise<void> => {
     const response = await fetch('http://localhost:8080/api/auth/login', {
@@ -38,6 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('token');
     setToken(null);
     setIsAuthenticated(false);
+    window.location.href = '/login';
   };
 
   const request = async (url: string, options?: RequestInit) => {
@@ -51,12 +53,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{
-      isAuthenticated,
-      login,
-      logout,
-      request
-    }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        login,
+        logout,
+        request,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -11,7 +11,7 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
-  
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -28,7 +28,7 @@ function LoginForm() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/servers');
+      navigate('/');
     }
   }, [isAuthenticated]);
 
@@ -58,7 +58,7 @@ function LoginForm() {
               required
             />
           </div>
-          <button type="submit" disabled={isLoading}>
+          <button type='submit' disabled={isLoading}>
             {isLoading ? 'Logging in...' : 'Login'}
           </button>
         </form>
