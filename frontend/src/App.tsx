@@ -11,11 +11,7 @@ function App() {
     message: string;
     type: 'success' | 'error';
   } | null>(null);
-  const { token, setToken } = useAuth();
-
-  function handleLogout(): void {
-    setToken(null);
-  }
+  const { isAuthenticated, logout } = useAuth();
 
   return (
     <BrowserRouter>
@@ -25,8 +21,8 @@ function App() {
             <Link to="/">Remote File Navigator</Link>
           </div>
           <div className="navbar-links">
-            {token && (
-              <button onClick={handleLogout}>Logout</button>
+            {isAuthenticated && (
+              <button onClick={logout}>Logout</button>
             )}
           </div>
         </nav>
@@ -44,7 +40,7 @@ function App() {
           <Route 
             path="/login" 
             element={
-              !token ? (
+              !isAuthenticated ? (
                 <LoginForm />
               ) : (
                 <Navigate to="/" />
@@ -54,7 +50,7 @@ function App() {
           <Route 
             path="/" 
             element={
-              token ? (
+              isAuthenticated ? (
                 <Servers />
               ) : (
                 <Navigate to="/login" />

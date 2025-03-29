@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 
 function LoginForm() {
-  const { setToken, token } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
@@ -18,21 +18,7 @@ function LoginForm() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(credentials),
-      });
-
-      if (!response.ok) {
-        throw new Error('Invalid username or password');
-      }
-
-      const data = await response.json();
-      setToken(data.token);
-      // onConnect(true);
+      await login(credentials.username, credentials.password);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -41,10 +27,10 @@ function LoginForm() {
   };
 
   useEffect(() => {
-    if (token) {
+    if (isAuthenticated) {
       navigate('/servers');
     }
-  }, [token]);
+  }, [isAuthenticated]);
 
   return (
     <>

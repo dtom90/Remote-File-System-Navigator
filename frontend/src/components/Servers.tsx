@@ -5,25 +5,15 @@ import { useAuth } from '../contexts/AuthContext';
 function Servers() {
   const [servers, setServers] = useState<Server[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const { token } = useAuth();
+  const { request } = useAuth();
 
   useEffect(() => {
     fetchServers();
-  }, [token]);
+  }, []);
 
   const fetchServers = async () => {
     try {
-      const response = await fetch('http://localhost:8080/api/servers', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch servers');
-      }
-      
+      const response = await request('/api/servers');
       const data = await response.json();
       setServers(data);
     } catch (error) {
@@ -58,4 +48,4 @@ function Servers() {
   );
 }
 
-export default Servers; 
+export default Servers;
