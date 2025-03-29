@@ -2,6 +2,7 @@ export interface Server {
   id: string;
   name: string;
   hostname: string;
+  port: string;
   // Add other server properties as needed
 }
 

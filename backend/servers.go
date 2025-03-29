@@ -13,21 +13,18 @@ type Server struct {
 	Port     string `json:"port"`
 }
 
-var servers = []Server{
-	{
-		ID:       "1",
+var servers = map[string]Server{
+	"1": {
 		Name:     "Production Server",
 		Hostname: "prod.example.com",
 		Port:     "22",
 	},
-	{
-		ID:       "2",
+	"2": {
 		Name:     "Staging Server",
 		Hostname: "staging.example.com",
 		Port:     "22",
 	},
-	{
-		ID:       "3",
+	"3": {
 		Name:     "Development Server",
 		Hostname: "dev.example.com",
 		Port:     "22",
@@ -35,5 +32,21 @@ var servers = []Server{
 }
 
 func handleGetServers(c *gin.Context) {
-	c.JSON(http.StatusOK, servers)
+	// Convert map values to slice for returning all servers
+	serversList := make([]Server, 0, len(servers))
+	for id, server := range servers {
+		server.ID = id // Ensure ID is set
+		serversList = append(serversList, server)
+	}
+	c.JSON(http.StatusOK, serversList)
+}
+
+func handleGetServer(c *gin.Context) {
+	id := c.Param("id")
+	if server, exists := servers[id]; exists {
+		server.ID = id // Ensure ID is set
+		c.JSON(http.StatusOK, server)
+		return
+	}
+	c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})
 }

@@ -58,9 +58,11 @@ function LoginForm() {
               required
             />
           </div>
-          <button type='submit' disabled={isLoading}>
-            {isLoading ? 'Logging in...' : 'Login'}
-          </button>
+          <div className='flex justify-center'>
+            <button type='submit' disabled={isLoading}>
+              {isLoading ? 'Logging in...' : 'Login'}
+            </button>
+          </div>
         </form>
       </div>
     </>

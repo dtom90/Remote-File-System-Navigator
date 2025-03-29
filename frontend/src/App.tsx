@@ -2,7 +2,8 @@ import { createBrowserRouter, RouterProvider, Navigate, Link, Outlet } from 'rea
 import './App.css';
 import LoginForm from './components/LoginForm';
 import { useAuth } from './contexts/AuthContext';
-import Servers from './components/Servers';
+import ServerList from './components/ServerList';
+import ServerDetail from './components/ServerDetail';
 
 function Layout() {
   const { isAuthenticated, logout } = useAuth();
@@ -36,7 +37,11 @@ function App() {
         },
         {
           path: '/',
-          element: isAuthenticated ? <Servers /> : <Navigate to='/login' />,
+          element: isAuthenticated ? <ServerList /> : <Navigate to='/login' />,
+        },
+        {
+          path: '/servers/:id',
+          element: isAuthenticated ? <ServerDetail /> : <Navigate to='/login' />,
         },
       ],
     },

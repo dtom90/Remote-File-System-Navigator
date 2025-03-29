@@ -156,6 +156,7 @@ func main() {
 	router.POST("/api/auth/logout", handleLogout)
 
 	router.GET("/api/servers", authMiddleware(), handleGetServers)
+	router.GET("/api/servers/:id", authMiddleware(), handleGetServer)
 
 	// Start server
 	http.ListenAndServe(":8080", c.Handler(router))

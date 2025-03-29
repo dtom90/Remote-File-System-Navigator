@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Server } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 
-function Servers() {
+function ServerList() {
   const [servers, setServers] = useState<Server[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { request } = useAuth();
@@ -21,30 +21,22 @@ function Servers() {
     }
   };
 
-  const handleServerSelect = (server: Server) => {
-    console.log('Selected server:', server);
-  };
-
   if (error) {
     return <div>Error: {error}</div>;
   }
 
   return (
-    <div className="servers-container">
+    <div className='servers-container'>
       <h2>Available Servers</h2>
       {servers.length === 0 ? (
         <p>No servers available</p>
       ) : (
-        <div className="servers-grid">
+        <div className='servers-grid'>
           {servers.map((server) => (
-            <button
-              key={server.id}
-              onClick={() => handleServerSelect(server)}
-              className="server-tile"
-            >
+            <a key={server.id} href={`/servers/${server.id}`} className='btn server-tile'>
               <h3>{server.name}</h3>
               <p>{server.hostname}</p>
-            </button>
+            </a>
           ))}
         </div>
       )}
@@ -52,4 +44,4 @@ function Servers() {
   );
 }
 
-export default Servers;
+export default ServerList;

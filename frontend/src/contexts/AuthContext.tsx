@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useState, ReactNode, useContext } from 'react';
 const baseUrl = 'http://localhost:8080';
 
 interface AuthContextType {
@@ -43,13 +43,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const request = async (url: string, options?: RequestInit) => {
-    return fetch(`${baseUrl}${url}`, {
+    const response = await fetch(`${baseUrl}${url}`, {
       ...options,
       headers: {
         ...options?.headers,
         Authorization: `Bearer ${token}`,
       },
     });
+
+    if (response.status === 401) {
+      logout();
+    }
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    return response;
   };
 
   return (
