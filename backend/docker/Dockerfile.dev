@@ -1,0 +1,26 @@
+# Use official Golang image
+FROM golang:1.23-alpine
+
+# Install git and build tools
+RUN apk add --no-cache git
+
+# Install air for hot reloading (optional but recommended for development)
+RUN go install github.com/air-verse/air@latest
+
+# Set working directory
+WORKDIR /app
+
+# Copy go mod files
+COPY go.mod go.sum ./
+
+# Download dependencies
+RUN go mod download
+
+# Copy the rest of the backend code
+COPY . .
+
+# Expose the port your Gin server runs on
+EXPOSE 8080
+
+# Start the server using air for hot reload
+CMD ["air"]
