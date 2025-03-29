@@ -4,6 +4,7 @@ import Notification from './components/Notification';
 import LoginForm from './components/LoginForm';
 import FileSystemNavigator from './components/FileSystemNavigator';
 import { SSHConnectResponse, SSHDisconnectResponse, SSHConnectRequest } from './types';
+import { useAuth } from './contexts/AuthContext';
 
 function App() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -11,13 +12,35 @@ function App() {
     message: string;
     type: 'success' | 'error';
   } | null>(null);
+  const { token } = useAuth();
 
   const handleConnect = async (isConnected: boolean) => {
-    if (isConnected) {
-      // call the api to get the servers
-      const response = await fetch('http://localhost:8080/api/servers');
+    if (!isConnected) return;
+    
+    if (!token) {
+      setNotification({ message: 'Not authenticated. Please login first.', type: 'error' });
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:8080/api/servers', {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch servers');
+      }
+      
       const data = await response.json();
       console.log(data);
+    } catch (error) {
+      setNotification({ 
+        message: 'Failed to fetch servers: ' + (error as Error).message, 
+        type: 'error' 
+      });
     }
   };
   // const handleConnect = async (config: SSHConnectRequest) => {

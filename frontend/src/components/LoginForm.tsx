@@ -1,17 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 interface LoginFormProps {
   onConnect: (isConnected: boolean) => void;
 }
 
 function LoginForm({ onConnect }: LoginFormProps) {
+  const { setToken, token } = useAuth();
   const [credentials, setCredentials] = useState({
     username: '',
     password: '',
   });
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,13 +34,19 @@ function LoginForm({ onConnect }: LoginFormProps) {
 
       const data = await response.json();
       setToken(data.token);
-      onConnect(true);
+      // onConnect(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (token) {
+      onConnect(true);
+    }
+  }, [token]);
 
   return (
     <>

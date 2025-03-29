@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -20,8 +21,8 @@ type Session struct {
 
 var (
 	// In-memory storage for users and sessions
-	users    = make(map[string]User)
-	sessions = make(map[string]Session)
+	users        = make(map[string]User)
+	authSessions = make(map[string]Session)
 )
 
 func init() {
@@ -64,7 +65,7 @@ func handleLogin(c *gin.Context) {
 
 	// Generate session token
 	sessionToken := generateSessionID()
-	sessions[sessionToken] = Session{
+	authSessions[sessionToken] = Session{
 		Username:  req.Username,
 		CreatedAt: time.Now(),
 	}
@@ -82,8 +83,8 @@ func handleLogout(c *gin.Context) {
 		return
 	}
 
-	if _, exists := sessions[token]; exists {
-		delete(sessions, token)
+	if _, exists := authSessions[token]; exists {
+		delete(authSessions, token)
 		c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 	} else {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid session"})
@@ -99,7 +100,9 @@ func authMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		session, exists := sessions[token]
+		token = strings.TrimPrefix(token, "Bearer ")
+
+		session, exists := authSessions[token]
 		if !exists {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid session"})
 			return
@@ -107,7 +110,7 @@ func authMiddleware() gin.HandlerFunc {
 
 		// Check if session is expired (24 hours)
 		if time.Since(session.CreatedAt) > 24*time.Hour {
-			delete(sessions, token)
+			delete(authSessions, token)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Session expired"})
 			return
 		}
@@ -123,9 +126,9 @@ func cleanupSessions() {
 	for {
 		time.Sleep(1 * time.Hour)
 		now := time.Now()
-		for token, session := range sessions {
+		for token, session := range authSessions {
 			if now.Sub(session.CreatedAt) > 24*time.Hour {
-				delete(sessions, token)
+				delete(authSessions, token)
 			}
 		}
 	}
