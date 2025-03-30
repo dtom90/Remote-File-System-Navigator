@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Server } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { useParams } from 'react-router-dom';
@@ -12,13 +12,7 @@ function ServerDetail() {
   const [connecting, setConnecting] = useState(false);
   const { request } = useAuth();
 
-  useEffect(() => {
-    if (id) {
-      fetchServerDetails();
-    }
-  }, [id]);
-
-  const fetchServerDetails = async () => {
+  const fetchServerDetails = useCallback(async () => {
     if (!id) return;
 
     setLoading(true);
@@ -33,7 +27,13 @@ function ServerDetail() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [id, request]);
+
+  useEffect(() => {
+    if (id) {
+      fetchServerDetails();
+    }
+  }, [id, fetchServerDetails]);
 
   const handleConnect = async () => {
     if (!id) return;

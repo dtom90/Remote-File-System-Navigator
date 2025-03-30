@@ -1,17 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Server } from '../types';
 import { useAuth } from '../contexts/AuthContext';
 import { Link } from 'react-router-dom';
+
 function ServerList() {
   const [servers, setServers] = useState<Server[]>([]);
   const [error, setError] = useState<string | null>(null);
   const { request } = useAuth();
 
-  useEffect(() => {
-    fetchServers();
-  }, []);
-
-  const fetchServers = async () => {
+  const fetchServers = useCallback(async () => {
     try {
       const response = await request('/api/servers');
       const data = await response.json();
@@ -19,7 +16,11 @@ function ServerList() {
     } catch (error) {
       setError((error as Error).message);
     }
-  };
+  }, [request]);
+
+  useEffect(() => {
+    fetchServers();
+  }, [fetchServers]);
 
   if (error) {
     return <div>Error: {error}</div>;
