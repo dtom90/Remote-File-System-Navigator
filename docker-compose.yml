@@ -1,29 +1,29 @@
+version: '3.8'
 
 services:
   frontend:
     build:
       context: ./frontend
-      dockerfile: docker/Dockerfile.prod
+      dockerfile: docker/Dockerfile.dev
+    container_name: remote-file-navigator-frontend-dev
     ports:
-      - "8080:80"
-    networks:
-      - network
-    depends_on:
-      - backend
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
 
   backend:
     build:
       context: ./backend
-      dockerfile: docker/Dockerfile.prod
-    environment:
-      - NODE_ENV=production
-      # Add other environment variables your backend needs
-      # - JWT_SECRET=
-    expose:
-      - "8080"
-    networks:
-      - network
+      dockerfile: docker/Dockerfile.dev
+    container_name: remote-file-navigator-backend-dev
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
 
-networks:
-  network:
-    driver: bridge
+  remote-server:
+    image: remote-server
+    container_name: remote-server
+    ports:
+      - "2222:22"

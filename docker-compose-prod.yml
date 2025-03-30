@@ -1,0 +1,28 @@
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: docker/Dockerfile.prod
+    ports:
+      - "8080:80"
+    networks:
+      - network
+    depends_on:
+      - backend
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: docker/Dockerfile.prod
+    environment:
+      - NODE_ENV=production
+      # Add other environment variables your backend needs
+      # - JWT_SECRET=
+    expose:
+      - "8080"
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge

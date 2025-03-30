@@ -8,6 +8,5 @@ cd "$(dirname "$0")"
 # Build & run the Docker image
 docker build -t remote-server -f Dockerfile . && \
 docker run -it --rm --name remote-server \
-           -p 22:22 \
-           -v $(pwd):/app \
+           -p 2222:22 \
            remote-server
