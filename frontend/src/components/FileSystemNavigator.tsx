@@ -1,14 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FileInfo } from '../types';
+import { useParams } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
-interface FileSystemNavigatorProps {
-  sessionId: string;
-  onCloseSession: () => void;
-}
-
-function FileSystemNavigator({ sessionId, onCloseSession }: FileSystemNavigatorProps) {
+function FileSystemNavigator() {
   const [directories, setDirectories] = useState<FileInfo[]>([]);
-  const [currentPath, setCurrentPath] = useState<string>('/');
+  const [currentPath, setCurrentPath] = useState<string>('.');
+  const serverId = useParams().id;
+  const { request } = useAuth();
 
   const navigate = (path: string) => {
     if (path === '..') {
@@ -19,18 +18,23 @@ function FileSystemNavigator({ sessionId, onCloseSession }: FileSystemNavigatorP
     }
   };
 
+  const fetchDirectories = useCallback(async () => {
+    const response = await request(`/api/servers/${serverId}/files`, {
+      method: 'POST',
+      body: JSON.stringify({ path: currentPath }),
+    });
+    const data = await response.json();
+    setDirectories(data);
+  }, [serverId, currentPath, request]);
+
   useEffect(() => {
-    fetch(`http://localhost:8080/api/files/${sessionId}/${currentPath}`)
-      .then((response) => response.json())
-      .then((data) => setDirectories(data))
-      .catch((error) => console.error('Error fetching directories:', error));
-  }, [currentPath, sessionId]);
+    fetchDirectories();
+  }, [fetchDirectories]);
 
   return (
     <>
-      <h1>File System Navigation</h1>
-      <h4>Session ID: {sessionId}</h4>
-      <button onClick={onCloseSession}>Close Session</button>
+      {/* <h2>{server.name}</h2> */}
+      <h2>server.name</h2>
       <div className='card'>
         <p>Current Path: {currentPath}</p>
 

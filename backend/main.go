@@ -36,6 +36,7 @@ func main() {
 		// servers routes
 		protected.GET("/servers", handleGetServers)
 		protected.GET("/servers/:id", handleGetServer)
+		protected.POST("/servers/:id/files", handleListFiles)
 		protected.POST("/servers/:id/ssh", handleSSHConnect)
 		// TODO: sanitize path
 		// protected.GET("/servers/:id/*path", handleListFiles)

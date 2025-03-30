@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Server } from '../types';
 import { useAuth } from '../contexts/AuthContext';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import './ServerDetail.css';
 
 function ServerDetail() {
@@ -9,7 +9,6 @@ function ServerDetail() {
   const [server, setServer] = useState<Server | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [connecting, setConnecting] = useState(false);
   const { request } = useAuth();
 
   const fetchServerDetails = useCallback(async () => {
@@ -35,27 +34,6 @@ function ServerDetail() {
     }
   }, [id, fetchServerDetails]);
 
-  const handleConnect = async () => {
-    if (!id) return;
-
-    setConnecting(true);
-    setError(null);
-
-    try {
-      const response = await request(`/api/servers/${id}/ssh`, {
-        method: 'POST',
-      });
-      if (!response.ok) {
-        throw new Error('Failed to connect to server');
-      }
-      // Handle successful connection here
-    } catch (error) {
-      setError((error as Error).message);
-    } finally {
-      setConnecting(false);
-    }
-  };
-
   if (!id) {
     return null;
   }
@@ -76,9 +54,9 @@ function ServerDetail() {
     <div className='server-detail'>
       <div className='server-detail-header'>
         <h2>{server.name}</h2>
-        <button onClick={handleConnect} disabled={connecting} className='connect-button'>
-          {connecting ? 'Connecting...' : 'Connect'}
-        </button>
+        <Link to={`/servers/${id}/files`}>
+          <button className='connect-button'>Browse Files</button>
+        </Link>
       </div>
 
       <div className='server-detail-content'>

@@ -59,6 +59,7 @@ type SSHSession struct {
 }
 
 var (
+	// TODO: rename this
 	sshSessions = make(map[string]*SSHSession)
 )
 
@@ -94,7 +95,20 @@ func handleSSHConnect(c *gin.Context) {
 		return
 	}
 
-	log.Printf("Attempting SSH connection to %s:%s as %s", server.Hostname, server.Port, server.Username)
+	sshSession, err := createSSHSession(server)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":  "SSH connection established successfully",
+		"serverId": serverId,
+		"session":  sshSession,
+	})
+}
+
+func createSSHSession(server Server) (*SSHSession, error) {
 
 	config := &ssh.ClientConfig{
 		User: server.Username,
@@ -104,41 +118,40 @@ func handleSSHConnect(c *gin.Context) {
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
+	log.Printf("Attempting SSH connection to %s:%s as %s", server.Hostname, server.Port, server.Username)
 	addr := fmt.Sprintf("%s:%s", server.Hostname, server.Port)
 	client, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
 		log.Printf("SSH connection failed: %v", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-		return
+		return nil, err
 	}
 
-	// TODO: generate session ID using uuid
-	sshSessions[serverId] = &SSHSession{
+	sshSessions[server.ID] = &SSHSession{
 		Client:  client,
-		Created: time.Now(),
+		Created: time.Now(), // TODO: generate session ID using uuid
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":  "SSH connection established successfully",
-		"serverId": serverId,
-	})
+	return sshSessions[server.ID], nil
 }
 
 // handleListFiles handles file listing requests over SSH
 func handleListFiles(c *gin.Context) {
+	serverId := c.Param("id")
 
-	// TODO: look for existing session for this user and server
-
-	sessionId := c.Param("sessionId")
-	path := c.Param("path")
-	if path == "" {
-		path = "."
+	_, exists := servers[serverId]
+	if !exists {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})
+		return
 	}
 
-	sshSession, exists := sshSessions[sessionId]
+	sshSession, exists := sshSessions[serverId]
 	if !exists {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Session not found"})
-		return
+		var err error
+		sshSession, err = createSSHSession(servers[serverId])
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
+		}
 	}
 
 	session, err := sshSession.Client.NewSession()
@@ -148,6 +161,10 @@ func handleListFiles(c *gin.Context) {
 	}
 	defer session.Close()
 
+	path := c.PostForm("path")
+	if path == "" {
+		path = "."
+	}
 	output, err := session.Output(fmt.Sprintf("ls -la %s", path))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
