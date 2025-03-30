@@ -59,6 +59,13 @@ function App() {
     },
   ]);
 
+  // Subscribe to navigation events
+  router.subscribe((state) => {
+    if (state.location.pathname !== '/login') {
+      sessionStorage.setItem('returnTo', state.location.pathname);
+    }
+  });
+
   return <RouterProvider router={router} />;
 }
 

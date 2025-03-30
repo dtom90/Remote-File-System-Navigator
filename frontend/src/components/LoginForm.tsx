@@ -11,18 +11,21 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const location = useLocation();
-  const returnTo = location.state?.returnTo || '/';
-  console.log('returnTo', returnTo);
 
   const navigate = useNavigate();
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log('handleSubmit', 'returnTo', returnTo);
     e.preventDefault();
     setError(null);
     setIsLoading(true);
 
     try {
       await login(credentials.username, credentials.password);
+
+      // 3 use cases to handle for redirecting to the correct page
+      // 1. user is on page X, logs out, logs in, should be redirected to page X
+      // 2. user is on page X, server restarts and user is logged out, user logs back in, should be redirected to page X
+      // 3. user navigates to page X when not logged in, user logs in, should be redirected to page X
+      const returnTo = sessionStorage.getItem('returnTo') || location.state?.returnTo || '/';
       if (returnTo) {
         sessionStorage.setItem('returnTo', returnTo);
         navigate(returnTo);

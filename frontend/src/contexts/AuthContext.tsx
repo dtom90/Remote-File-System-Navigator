@@ -52,6 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
 
     if (response.status === 401) {
+      sessionStorage.setItem('returnTo', window.location.pathname);
       logout();
     }
 
