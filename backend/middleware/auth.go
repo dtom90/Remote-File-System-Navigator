@@ -1,4 +1,4 @@
-package main
+package middleware
 
 import (
 	"net/http"
@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,7 +46,7 @@ type LoginRequest struct {
 	Password string `json:"password" binding:"required"`
 }
 
-func handleLogin(c *gin.Context) {
+func HandleLogin(c *gin.Context) {
 	var req LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
@@ -64,7 +65,7 @@ func handleLogin(c *gin.Context) {
 	}
 
 	// Generate session token
-	sessionToken := generateSessionID()
+	sessionToken := generateSessionToken()
 	authSessions[sessionToken] = Session{
 		Username:  req.Username,
 		CreatedAt: time.Now(),
@@ -76,7 +77,7 @@ func handleLogin(c *gin.Context) {
 	})
 }
 
-func handleLogout(c *gin.Context) {
+func HandleLogout(c *gin.Context) {
 	token := c.GetHeader("Authorization")
 	if token == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No token provided"})
@@ -92,7 +93,7 @@ func handleLogout(c *gin.Context) {
 }
 
 // Middleware to check if user is authenticated
-func authMiddleware() gin.HandlerFunc {
+func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		token := c.GetHeader("Authorization")
 		if token == "" {
@@ -132,4 +133,12 @@ func cleanupSessions() {
 			}
 		}
 	}
+}
+
+func generateSessionToken() string {
+	return uuid.New().String()
+}
+
+func init() {
+	go cleanupSessions()
 }

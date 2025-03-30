@@ -5,6 +5,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rs/cors"
+
+	"file-system-navigation/backend/middleware"
 )
 
 func main() {
@@ -23,14 +25,14 @@ func main() {
 			"status": "ok",
 		})
 	})
-	router.POST("/api/auth/login", handleLogin)
+	router.POST("/api/auth/login", middleware.HandleLogin)
 
 	// Protected routes group (auth required)
 	protected := router.Group("/api")
-	protected.Use(authMiddleware())
+	protected.Use(middleware.AuthMiddleware())
 	{
 		// auth routes
-		protected.POST("/auth/logout", handleLogout)
+		protected.POST("/auth/logout", middleware.HandleLogout)
 
 		// servers routes
 		protected.GET("/servers", handleGetServers)
@@ -38,6 +40,8 @@ func main() {
 
 		// ssh routes
 		protected.POST("/ssh/connect", handleSSHConnect)
+
+		// TODO: sanitize path
 		protected.GET("/files/:sessionId/*path", handleListFiles)
 		protected.DELETE("/ssh/disconnect/:sessionID", handleSSHDisconnect)
 	}
