@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -15,23 +16,31 @@ type Server struct {
 	Name     string `json:"name"`
 	Hostname string `json:"hostname"`
 	Port     string `json:"port"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 var servers = map[string]Server{
 	"1": {
-		Name:     "Production Server",
-		Hostname: "prod.example.com",
+		Name:     "Development Server",
+		Hostname: "remote-server",
 		Port:     "22",
+		Username: "ubuntu",
+		Password: "password",
 	},
 	"2": {
 		Name:     "Staging Server",
 		Hostname: "staging.example.com",
 		Port:     "22",
+		Username: "username",
+		Password: "password",
 	},
 	"3": {
-		Name:     "Development Server",
-		Hostname: "dev.example.com",
+		Name:     "Production Server",
+		Hostname: "prod.example.com",
 		Port:     "22",
+		Username: "username",
+		Password: "password",
 	},
 }
 
@@ -52,11 +61,6 @@ type SSHSession struct {
 var (
 	sshSessions = make(map[string]*SSHSession)
 )
-
-// generateSessionID creates a unique session identifier
-func generateSessionID() string {
-	return fmt.Sprintf("%d", time.Now().UnixNano())
-}
 
 func handleGetServers(c *gin.Context) {
 	// Convert map values to slice for returning all servers
@@ -80,41 +84,51 @@ func handleGetServer(c *gin.Context) {
 
 // handleSSHConnect handles new SSH connection requests
 func handleSSHConnect(c *gin.Context) {
-	var req SSHConnectionRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	log.Printf("handleSSHConnect called with server ID: %s", c.Param("id"))
+	serverId := c.Param("id")
+
+	server, exists := servers[serverId]
+	if !exists {
+		log.Printf("Server not found: %s", serverId)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Server not found"})
 		return
 	}
 
+	log.Printf("Attempting SSH connection to %s:%s as %s", server.Hostname, server.Port, server.Username)
+
 	config := &ssh.ClientConfig{
-		User: req.Username,
+		User: server.Username,
 		Auth: []ssh.AuthMethod{
-			ssh.Password(req.Password),
+			ssh.Password(server.Password),
 		},
-		HostKeyCallback: ssh.InsecureIgnoreHostKey(), // Note: In production, use proper host key verification
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 	}
 
-	addr := fmt.Sprintf("%s:%s", req.Hostname, req.Port)
+	addr := fmt.Sprintf("%s:%s", server.Hostname, server.Port)
 	client, err := ssh.Dial("tcp", addr, config)
 	if err != nil {
+		log.Printf("SSH connection failed: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	sessionID := generateSessionID()
-	sshSessions[sessionID] = &SSHSession{
+	// TODO: generate session ID using uuid
+	sshSessions[serverId] = &SSHSession{
 		Client:  client,
 		Created: time.Now(),
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"message":   "SSH connection established successfully",
-		"sessionID": sessionID,
+		"message":  "SSH connection established successfully",
+		"serverId": serverId,
 	})
 }
 
 // handleListFiles handles file listing requests over SSH
 func handleListFiles(c *gin.Context) {
+
+	// TODO: look for existing session for this user and server
+
 	sessionId := c.Param("sessionId")
 	path := c.Param("path")
 	if path == "" {
@@ -146,10 +160,10 @@ func handleListFiles(c *gin.Context) {
 
 // handleSSHDisconnect handles SSH disconnection requests
 func handleSSHDisconnect(c *gin.Context) {
-	sessionID := c.Param("sessionID")
-	if sshSession, exists := sshSessions[sessionID]; exists {
+	serverId := c.Param("id")
+	if sshSession, exists := sshSessions[serverId]; exists {
 		sshSession.Client.Close()
-		delete(sshSessions, sessionID)
+		delete(sshSessions, serverId)
 		c.JSON(http.StatusOK, gin.H{"message": "Session closed successfully"})
 	} else {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Session not found"})
@@ -206,3 +220,5 @@ func startSessionCleanup() {
 func init() {
 	startSessionCleanup()
 }
+
+// TODO: clean up all sessions when user logs out

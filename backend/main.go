@@ -31,19 +31,15 @@ func main() {
 	protected := router.Group("/api")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		// auth routes
 		protected.POST("/auth/logout", middleware.HandleLogout)
 
 		// servers routes
 		protected.GET("/servers", handleGetServers)
 		protected.GET("/servers/:id", handleGetServer)
-
-		// ssh routes
-		protected.POST("/ssh/connect", handleSSHConnect)
-
+		protected.POST("/servers/:id/ssh", handleSSHConnect)
 		// TODO: sanitize path
-		protected.GET("/files/:sessionId/*path", handleListFiles)
-		protected.DELETE("/ssh/disconnect/:sessionID", handleSSHDisconnect)
+		// protected.GET("/servers/:id/*path", handleListFiles)
+		protected.DELETE("/servers/:id/ssh", handleSSHDisconnect)
 	}
 
 	// Start server
