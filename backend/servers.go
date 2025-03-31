@@ -134,6 +134,21 @@ func createSSHSession(server Server) (*SSHSession, error) {
 	return sshSessions[server.ID], nil
 }
 
+// Helper function to execute SSH command and return output
+func executeSSHCommand(client *ssh.Client, command string) (string, error) {
+	session, err := client.NewSession()
+	if err != nil {
+		return "", err
+	}
+	defer session.Close()
+
+	output, err := session.Output(command)
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(output)), nil
+}
+
 // handleListFiles handles file listing requests over SSH
 func handleListFiles(c *gin.Context) {
 	serverId := c.Param("id")
@@ -154,25 +169,37 @@ func handleListFiles(c *gin.Context) {
 		}
 	}
 
-	session, err := sshSession.Client.NewSession()
+	var body struct {
+		Path string `json:"path"`
+	}
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	path := body.Path
+
+	// Get absolute path
+	absolutePath, err := executeSSHCommand(sshSession.Client, fmt.Sprintf("realpath %s", path))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	defer session.Close()
 
-	path := c.PostForm("path")
-	if path == "" {
-		path = "."
-	}
-	output, err := session.Output(fmt.Sprintf("ls -la %s", path))
+	// List files
+	lsOutput, err := executeSSHCommand(sshSession.Client, fmt.Sprintf("ls -la %s", absolutePath))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	files := parseLsOutput(string(output))
-	c.JSON(http.StatusOK, files)
+	// TODO: handle errors
+
+	files := parseLsOutput(lsOutput)
+	response := map[string]interface{}{
+		"path":  absolutePath,
+		"files": files,
+	}
+	c.JSON(http.StatusOK, response)
 }
 
 // handleSSHDisconnect handles SSH disconnection requests

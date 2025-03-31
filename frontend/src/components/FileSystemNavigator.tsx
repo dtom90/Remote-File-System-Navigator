@@ -9,13 +9,9 @@ function FileSystemNavigator() {
   const serverId = useParams().id;
   const { request } = useAuth();
 
-  const navigate = (path: string) => {
-    if (path === '..') {
-      setCurrentPath(currentPath.slice(0, currentPath.lastIndexOf('/')));
-    } else {
-      const newPath = currentPath === '/' ? currentPath + path : currentPath + '/' + path;
-      setCurrentPath(newPath);
-    }
+  const navigate = (dirName: string) => {
+    const newPath = currentPath === '/' ? currentPath + dirName : currentPath + '/' + dirName;
+    setCurrentPath(newPath);
   };
 
   const fetchDirectories = useCallback(async () => {
@@ -24,7 +20,9 @@ function FileSystemNavigator() {
       body: JSON.stringify({ path: currentPath }),
     });
     const data = await response.json();
-    setDirectories(data);
+    const { files, path } = data;
+    setDirectories(files);
+    setCurrentPath(path);
   }, [serverId, currentPath, request]);
 
   useEffect(() => {
