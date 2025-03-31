@@ -33,17 +33,7 @@ func main() {
 	{
 		protected.POST("/auth/logout", middleware.HandleLogout)
 
-		// files routes
 		protected.POST("/files", handleGetFiles)
-
-		// servers routes
-		protected.GET("/servers", handleGetServers)
-		protected.GET("/servers/:id", handleGetServer)
-		protected.POST("/servers/:id/files", handleListFiles)
-		protected.POST("/servers/:id/ssh", handleSSHConnect)
-		// TODO: sanitize path
-		// protected.GET("/servers/:id/*path", handleListFiles)
-		protected.DELETE("/servers/:id/ssh", handleSSHDisconnect)
 	}
 
 	// Start server
