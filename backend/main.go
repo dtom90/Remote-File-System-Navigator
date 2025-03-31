@@ -33,6 +33,9 @@ func main() {
 	{
 		protected.POST("/auth/logout", middleware.HandleLogout)
 
+		// files routes
+		protected.POST("/files", handleGetFiles)
+
 		// servers routes
 		protected.GET("/servers", handleGetServers)
 		protected.GET("/servers/:id", handleGetServer)

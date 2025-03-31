@@ -2,8 +2,6 @@ import { createBrowserRouter, RouterProvider, Navigate, Link, Outlet } from 'rea
 import './App.css';
 import LoginForm from './components/LoginForm';
 import { useAuth } from './contexts/AuthContext';
-import ServerList from './components/ServerList';
-import ServerDetail from './components/ServerDetail';
 import FileSystemNavigator from './components/FileSystemNavigator';
 
 function Layout() {
@@ -43,25 +41,9 @@ function App() {
         {
           path: '/',
           element: isAuthenticated ? (
-            <ServerList />
-          ) : (
-            <Navigate to='/login' replace state={{ returnTo: '/' }} />
-          ),
-        },
-        {
-          path: '/servers/:id',
-          element: isAuthenticated ? (
-            <ServerDetail />
-          ) : (
-            <Navigate to='/login' replace state={{ returnTo: window.location.pathname }} />
-          ),
-        },
-        {
-          path: '/servers/:id/files',
-          element: isAuthenticated ? (
             <FileSystemNavigator />
           ) : (
-            <Navigate to='/login' replace state={{ returnTo: window.location.pathname }} />
+            <Navigate to='/login' replace state={{ returnTo: '/' }} />
           ),
         },
       ],

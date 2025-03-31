@@ -1,8 +1,12 @@
 package main
 
 import (
+	"net/http"
 	"os"
+	"path/filepath"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 // FileInfo represents file metadata
@@ -35,4 +39,32 @@ func listFiles(path string) ([]FileInfo, error) {
 		})
 	}
 	return files, nil
+}
+
+func handleGetFiles(c *gin.Context) {
+	var body struct {
+		Path string `json:"path"`
+	}
+	if err := c.BindJSON(&body); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// TODO: handle errors
+	files, err := listFiles(body.Path)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	absolutePath, err := filepath.Abs(body.Path)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"files": files,
+		"path":  absolutePath,
+	})
 }
